@@ -3,21 +3,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 from functools import reduce
 from statistics import mean
+from collections import Counter
 
-def threshold2(imageArray):
-    balanceArr = []
-    newArr = imageArray
-    for eachRow in imageArray:
-        for eachPix in eachRow:
-            balanceArr.append(mean(eachPix[:3]))
-    balance = mean(balanceArr)
-    for eachRow in newArr:
-        for eachPix in eachRow:
-            if mean(eachPix[:3]) < balance:                
-                eachPix[0], eachPix[1], eachPix[2], eachPix[3] = 255, 255, 255, 255
-            else:
-                eachPix[0], eachPix[1], eachPix[2], eachPix[3] = 0, 0, 0, 255
-    return newArr
+def createExamples():
+    numberArrayExamples = open('numArrEx.txt', 'a')
+    numbersWeHave = range(0, 10)
+    versionsWeHave = range(1, 10)
+    for eachNum in numbersWeHave:
+        for eachVer in versionsWeHave:
+            imgFilePath = 'images/numbers/' + str(eachNum) + '.' + str(eachVer) + '.png'
+            ei = Image.open(imgFilePath)
+            eiar = str(np.array(ei).tolist())
+            numberArrayExamples.write(str(eachNum) + '::' + eiar + '\n')
 
 def threshold(imageArray):
     balanceAr = []
@@ -41,30 +38,57 @@ def threshold(imageArray):
                 eachPix[3] = 255
     return newAr
 
-i = Image.open('images/numbers/0.1.png')
-iar = np.array(i)
+def whatNumIsThis2(filePath):
+    matchedArr = []
+    loadExamples = open('numArrEx.txt', 'r').read()
+    loadExamples = loadExamples.split('\n')
+    
+    i = Image.open(filePath)
+    iar = np.array(i)
+    iar1 = iar.tolist()
+    inQuestion = str(iar1)
+    
+    for eachExample in loadExamples:
+        try:
+            splitExample = eachExample.split('::')
+            currentNum = splitExample[0]
+            currentArr = splitExample[1]
+            eachPixExample = currentArr.split('],')
+            eachPixInQ = inQuestion.split('],')
+            
+            x = 0
+            while x<len(eachPixExample):
+                if eachPixExample[x] == eachPixInQ[x]:
+                    matchedArr.append(int(currentNum))
+                x+=1
+        except Exception as e:
+            print(str(e))
+    x = Counter(matchedArr)
+    graphX = []
+    graphY = []
 
-i2 = Image.open('images/numbers/y0.4.png')
-iar2 = np.array(i2)
+    ylimi = 0
 
-i3 = Image.open('images/numbers/y0.5.png')
-iar3 = np.array(i3)
+    for eachThing in x:
+        graphX.append(eachThing)
+        graphY.append(x[eachThing])
+        ylimi = x[eachThing]
 
-i4 = Image.open('images/sentdex.png')
-iar4 = np.array(i4)
 
-threshold(iar2)
-threshold(iar3)
-threshold(iar4)
 
-fig = plt.figure()
-ax1 = plt.subplot2grid((8, 6), (0, 0), rowspan = 4, colspan = 3)
-ax2 = plt.subplot2grid((8, 6), (4, 0), rowspan = 4, colspan = 3)
-ax3 = plt.subplot2grid((8, 6), (0, 3), rowspan = 4, colspan = 3)
-ax4 = plt.subplot2grid((8, 6), (4, 3), rowspan = 4, colspan = 3)
+    fig = plt.figure()
+    ax1 = plt.subplot2grid((4,4),(0,0), rowspan=1, colspan=4)
+    ax2 = plt.subplot2grid((4,4),(1,0), rowspan=3,colspan=4)
+    
+    ax1.imshow(iar)
+    ax2.bar(graphX,graphY,align='center')
+    plt.ylim(400)
+    
+    xloc = plt.MaxNLocator(12)
+    ax2.xaxis.set_major_locator(xloc)
 
-ax1.imshow(iar)
-ax2.imshow(iar2)
-ax3.imshow(iar3)
-ax4.imshow(iar4)
-plt.show()
+    plt.show()
+    print(x)
+
+
+whatNumIsThis('test.png')
