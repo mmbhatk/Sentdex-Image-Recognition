@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from functools import reduce
 from statistics import mean
 
-def threshold(imageArray):
+def threshold2(imageArray):
     balanceArr = []
     newArr = imageArray
     for eachRow in imageArray:
@@ -18,6 +18,28 @@ def threshold(imageArray):
             else:
                 eachPix[0], eachPix[1], eachPix[2], eachPix[3] = 0, 0, 0, 255
     return newArr
+
+def threshold(imageArray):
+    balanceAr = []
+    newAr = imageArray
+    for eachRow in imageArray:
+        for eachPix in eachRow:
+            avgNum = reduce(lambda x, y: x + y, eachPix[:3]) / len(eachPix[:3])
+            balanceAr.append(avgNum)
+    balance = reduce(lambda x, y: x + y, balanceAr) / len(balanceAr)
+    for eachRow in newAr:
+        for eachPix in eachRow:
+            if reduce(lambda x, y: x + y, eachPix[:3]) / len(eachPix[:3]) > balance:
+                eachPix[0] = 255
+                eachPix[1] = 255
+                eachPix[2] = 255
+                eachPix[3] = 255
+            else:
+                eachPix[0] = 0
+                eachPix[1] = 0
+                eachPix[2] = 0
+                eachPix[3] = 255
+    return newAr
 
 i = Image.open('images/numbers/0.1.png')
 iar = np.array(i)
